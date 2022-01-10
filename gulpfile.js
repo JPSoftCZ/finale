@@ -1,4 +1,37 @@
-'use strict';
+gulp.task('serve', function() {
+  //1. gls is the base for `static` and `new`
+  var server = gls([gls.script, 'static', 8000]);
+  //equals gls.new([gls.script, 'static', 8000]);
+  //equals gls.static('static', 8000);
+  server.start();
+
+  //2. set running options for the server, e.g. NODE_ENV
+  var server = gls('myapp.js', {env: {NODE_ENV: 'development'}});
+  server.start();
+
+  //3. customize livereload server, e.g. port number
+  var server = gls('myapp.js', undefined, 12345);
+  var promise = server.start();
+  //optionally handle the server process exiting
+  promise.then(function(result) {
+    //log, exit, re-start, etc...
+  });
+
+  //4. start with coffee-script executable e.g. installed with npm
+  var server = gls('myapp.coffee');
+  server.start('node_modules/coffee-script/bin/coffee');
+
+  //use gulp.watch to trigger server actions(notify, start or stop)
+  gulp.watch(['static/**/*.css', 'static/**/*.html'], function (file) {
+    server.notify.apply(server, [file]);
+  });
+  gulp.watch('myapp.js', server.start.bind(server)); //restart my server
+  
+  // Note: try wrapping in a function if getting an error like `TypeError: Bad argument at TypeError (native) at ChildProcess.spawn`
+  gulp.watch('myapp.js', function() {
+    server.start.bind(server)()
+  });
+});
 
 const sass = require('gulp-sass')(require('sass'));
 const gulp = require('gulp');
